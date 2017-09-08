@@ -7,6 +7,11 @@
 #include <string.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <sys/wait.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <signal.h>
 
 #define THREAD_NAME_LEN 32
 #define MAX_LINE 256 
@@ -36,12 +41,13 @@ struct proc_info {
     char policy[32];  
 };  
 
-struct proc_info* new_proc_info,*old_proc_info;
+struct proc_info* new_proc_info;
 struct cpu_info new_cpu,old_cpu;
 struct proc_info** procs, **old_procs;
 int procs_num = 0;
 int old_procs_num = 0;
 int procs_size= THREAD_INIT;
+int old_procs_size = 0;
 
 int readStat(char* filename);
 void readProc();
@@ -49,4 +55,6 @@ int readTask(int pid);
 struct proc_info* find_old_proc(pid_t pid, pid_t tid);
 int numcmp(long unsigned a , long unsigned b);
 int comparDeltatime(const void * a , const void * b);
+void displayFileToConsole(const char* pfileName);
+void h_sa_sigaction(int sigNo, siginfo_t *info, void *parm);
 #endif

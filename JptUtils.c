@@ -40,6 +40,7 @@ void readProc()
 
 int readTask(int pid)
 {
+	int i;
 	char dirName[128];
 	char filename[128];
 	DIR * dir_task;
@@ -58,7 +59,12 @@ int readTask(int pid)
 		if(procs_num >= procs_size)
 		{
 			procs = realloc(procs, (THREAD_INIT + procs_size) * sizeof(struct proc_info*));
-			procs_size = procs_size + 2;
+			//初始化刚申请的空间
+			for(i = procs_size; i < (THREAD_INIT + procs_size); i++)
+			{
+				procs[i] = NULL;
+			}
+			procs_size = procs_size + THREAD_INIT;
 		} 
 		new_proc_info->pid = pid;
 		new_proc_info->tid = atoi(dir_sub_task->d_name);
@@ -102,3 +108,35 @@ int comparDeltatime(const void * a , const void * b)
 	
 }
 
+void displayFileToConsole(const char* pfileName)
+{
+	/////文件输出到控制台///
+	struct stat consFStat;
+	int consFd;
+	void* consStart;
+	///////////////////////
+	//打开文件
+	consFd = open(pfileName, O_RDONLY);
+	if(consFd == -1)
+	{
+		printf("open error :%m\n");
+		exit(EXIT_FAILURE);
+	} 
+	//获得文件长度
+	fstat(consFd, &consFStat);
+	
+	//映射文件
+	consStart = mmap(NULL, consFStat.st_size, PROT_READ, MAP_PRIVATE,
+              consFd, 0);
+	
+	printf("<<<<<<<<<<<<<<%s>>>>>>>>>>>>>>>>\n",pfileName);
+	printf("%s\n",consStart);
+	
+	munmap(consStart, consFStat.st_size);
+	close(consFd);
+}
+
+void h_sa_sigaction(int sigNo, siginfo_t *info, void *parm)
+{
+	printf("signal:%d\t pid:%d\t no entry! please wait...\n",sigNo,info->si_pid);
+}
